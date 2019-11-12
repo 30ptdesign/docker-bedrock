@@ -1,0 +1,87 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: bedrock-nginx
+    restart: unless-stopped
+    volumes:
+      - ./app:/var/www/html/:rw,cached
+      - ./nginx/site.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - bedrock
+      - traefik
+    labels:
+      # traefik V2
+      - traefik.http.routers.bedrock.rule=Host(`${SITE_URL}`)
+
+      # traefik V1
+      # - traefik.backend=bedrock
+      # - traefik.frontend.rule=Host:${SITE_URL}
+      # - traefik.docker.network=traefik
+      # - traefik.port=80
+    depends_on:
+      - mysql
+      - php
+    expose:
+      - '80'
+
+  php:
+    container_name: bedrock-php
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: dockerfile
+    volumes:
+      - ./app:/var/www/html/:rw,cached
+      - ./php/php.ini:/usr/local/etc/php/conf.d/php.ini
+    networks:
+      - bedrock
+    environment:
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_NAME: ${DB_DATABASE}
+      WORDPRESS_DB_USER: ${DB_USER}
+      WORDPRESS_DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      - mysql
+    expose:
+      - '9000'
+
+  mysql:
+    image: mysql:5.7
+    container_name: bedrock-mysql
+    restart: unless-stopped
+    networks:
+      - bedrock
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    # volumes:
+    #   - db_data:/var/lib/mysql
+    expose:
+      - '3306'
+    labels:
+      - traefik.enable=false
+
+  composer:
+    image: composer/composer
+    container_name: bedrock-composer
+    restart: 'no'
+    networks:
+      - bedrock
+    working_dir: /var/www/html
+    volumes:
+      - ./app:/var/www/html/:rw,cached
+    labels:
+      - traefik.enable=false
+
+networks:
+  traefik:
+    external: true
+  bedrock:
+    external: false
+
+# volumes:
+#   db_data:
