@@ -14,7 +14,7 @@ composer create-project roots/bedrock app
 ```bash
 cp app/.env.example app/.env
 ```
-### Build containers
+### Build / start containers
 ```bash
 docker-compose up -d mysql
 ```
