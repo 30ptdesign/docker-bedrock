@@ -9,10 +9,10 @@ cp .env.example .env
 ```
 ### Add bedrock
 ```bash
-composer create-project roots/bedrock app
+composer create-project roots/bedrock site
 ```
 ```bash
-cp app/.env.example app/.env
+cp site/.env.example site/.env
 ```
 ### Build / start containers
 ```bash
@@ -26,6 +26,6 @@ docker-compose up -d
 - the `docker-compose.yml` assumes traefik is running externally
 - the domain must be set in the following places:
     - `.env`
-    - `app/.env`
+    - `site/.env`
     - `nginx/site.conf`
     - `/etc/hosts`
